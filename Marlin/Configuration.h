@@ -619,7 +619,7 @@
 // Above this temperature the heater will be switched off.
 // This can protect components from overheating, but NOT from shorts and failures.
 // (Use MINTEMP for thermistor short/failure protection.)
-#define HEATER_0_MAXTEMP 335
+#define HEATER_0_MAXTEMP 300
 #define HEATER_1_MAXTEMP 275
 #define HEATER_2_MAXTEMP 275
 #define HEATER_3_MAXTEMP 275
@@ -668,9 +668,9 @@
     #define DEFAULT_Ki_LIST {   1.54,   1.54 }
     #define DEFAULT_Kd_LIST {  76.55,  76.55 }
   #else
-    #define DEFAULT_Kp 29.04
-    #define DEFAULT_Ki 2.95
-    #define DEFAULT_Kd 71.44
+    #define DEFAULT_Kp 61.66
+    #define DEFAULT_Ki 12.04
+    #define DEFAULT_Kd 78.93
   #endif
 #endif
 
@@ -692,11 +692,11 @@
   #define MPC_INCLUDE_FAN                             // Model the fan speed?
 
   // Measured physical constants from M306
-  #define MPC_BLOCK_HEAT_CAPACITY { 16.7f }           // (J/K) Heat block heat capacities.
-  #define MPC_SENSOR_RESPONSIVENESS { 0.22f }         // (K/s per ∆K) Rate of change of sensor temperature from heat block.
-  #define MPC_AMBIENT_XFER_COEFF { 0.068f }           // (W/K) Heat transfer coefficients from heat block to room air with fan off.
+  #define MPC_BLOCK_HEAT_CAPACITY { 16.5f }           // (J/K) Heat block heat capacities.
+  #define MPC_SENSOR_RESPONSIVENESS { -0.4801f }         // (K/s per ∆K) Rate of change of sensor temperature from heat block.
+  #define MPC_AMBIENT_XFER_COEFF { 0.1544f }           // (W/K) Heat transfer coefficients from heat block to room air with fan off.
   #if ENABLED(MPC_INCLUDE_FAN)
-    #define MPC_AMBIENT_XFER_COEFF_FAN255 { 0.097f }  // (W/K) Heat transfer coefficients from heat block to room air with fan on full.
+    #define MPC_AMBIENT_XFER_COEFF_FAN255 { 0.1650f }  // (W/K) Heat transfer coefficients from heat block to room air with fan on full.
   #endif
 
   // For one fan and multiple hotends MPC needs to know how to apply the fan cooling effect.
@@ -753,9 +753,9 @@
 
   // 120V 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
   // from FOPDT model - kp=.39 Tp=405 Tdead=66, Tc set to 79.2, aggressive factor of .15 (vs .1, 1, 10)
-  #define DEFAULT_bedKp 118.35
-  #define DEFAULT_bedKi 20.27
-  #define DEFAULT_bedKd 460.78
+  #define DEFAULT_bedKp 243.00
+  #define DEFAULT_bedKi 44.67
+  #define DEFAULT_bedKd 881.26
 
   // 120V 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
   // from pidautotune
@@ -1175,7 +1175,7 @@
  * Override with M92
  *                                      X, Y, Z [, I [, J [, K...]]], E0 [, E1[, E2...]]
  */
-#define DEFAULT_AXIS_STEPS_PER_UNIT   { 80, 80, 400, 93 }
+#define DEFAULT_AXIS_STEPS_PER_UNIT   { 79.92, 79.92, 400, 93 }
 
 /**
  * Default Max Feed Rate (linear=mm/s, rotational=°/s)
@@ -1496,7 +1496,7 @@
  *     |    [-]    |
  *     O-- FRONT --+
  */
-#define NOZZLE_TO_PROBE_OFFSET { -46, -2, -1.5 }
+#define NOZZLE_TO_PROBE_OFFSET { -46, -2, -0.3 }
 
 // Most probes should stay away from the edges of the bed, but
 // with NOZZLE_AS_PROBE this can be negative for a wider probing area.
@@ -2152,13 +2152,13 @@
  *    +-------------->X     +-------------->X     +-------------->Y
  *     XY_SKEW_FACTOR        XZ_SKEW_FACTOR        YZ_SKEW_FACTOR
  */
-//#define SKEW_CORRECTION
+#define SKEW_CORRECTION
 
 #if ENABLED(SKEW_CORRECTION)
   // Input all length measurements here:
-  #define XY_DIAG_AC 282.8427124746
-  #define XY_DIAG_BD 282.8427124746
-  #define XY_SIDE_AD 200
+  #define XY_DIAG_AC 100.4
+  #define XY_DIAG_BD 99.8
+  #define XY_SIDE_AD 70.7814
 
   // Or, set the XY skew factor directly:
   //#define XY_SKEW_FACTOR 0.0
@@ -2177,7 +2177,7 @@
   #endif
 
   // Enable this option for M852 to set skew at runtime
-  //#define SKEW_CORRECTION_GCODE
+  #define SKEW_CORRECTION_GCODE
 #endif
 
 //=============================================================================
@@ -2201,7 +2201,7 @@
 #define EEPROM_BOOT_SILENT    // Keep M503 quiet and only give errors during first load
 #if ENABLED(EEPROM_SETTINGS)
   //#define EEPROM_AUTO_INIT  // Init EEPROM automatically on any errors.
-  //#define EEPROM_INIT_NOW   // Init EEPROM on first boot after a new build.
+  #define EEPROM_INIT_NOW   // Init EEPROM on first boot after a new build.
 #endif
 
 // @section host
