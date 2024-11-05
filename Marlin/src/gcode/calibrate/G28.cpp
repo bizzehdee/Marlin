@@ -86,7 +86,7 @@
         NUM_AXIS_LIST(
           TERN0(X_SENSORLESS, tmc_enable_stallguard(stepperX)),
           TERN0(Y_SENSORLESS, tmc_enable_stallguard(stepperY)),
-          false, false, false, false
+          false, false, false, false, false, false, false
         )
         , TERN0(X2_SENSORLESS, tmc_enable_stallguard(stepperX2))
         , TERN0(Y2_SENSORLESS, tmc_enable_stallguard(stepperY2))
@@ -408,17 +408,30 @@ void GcodeSuite::G28() {
       #endif
     #endif
 
+    // Z may home first, e.g., when homing away from the bed
     TERN_(HOME_Z_FIRST, if (doZ) homeaxis(Z_AXIS));
 
+    // 'R' to specify a specific raise. 'R0' indicates no raise, e.g., for recovery.resume
+    // When 'R0' is used, there should already be adequate clearance, e.g., from homing Z to max.
     const bool seenR = parser.seenval('R');
-    const float z_homing_height = seenR ? parser.value_linear_units() : Z_HOMING_HEIGHT;
 
-    if (z_homing_height && (seenR || NUM_AXIS_GANG(doX, || doY, || TERN0(Z_SAFE_HOMING, doZ), || doI, || doJ, || doK, || doU, || doV, || doW))) {
-      // Raise Z before homing any other axes and z is not already high enough (never lower z)
-      if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("Raise Z (before homing) by ", z_homing_height);
-      do_z_clearance(z_homing_height);
-      TERN_(BLTOUCH, bltouch.init());
+    // Use raise given by 'R' or Z_HOMING_HEIGHT (above the probe trigger point)
+    float z_homing_height = seenR ? parser.value_linear_units() : Z_HOMING_HEIGHT;
+
+    // Check for any lateral motion that might require clearance
+    const bool may_skate = seenR || NUM_AXIS_GANG(doX, || doY, || TERN0(Z_SAFE_HOMING, doZ), || doI, || doJ, || doK, || doU, || doV, || doW);
+
+    if (seenR && z_homing_height == 0) {
+      if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("R0 = No Z raise");
     }
+    else if (z_homing_height && may_skate) {
+      // Raise Z before homing any other axes and z is not already high enough (never lower z)
+      if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("Raise Z before homing:");
+      do_z_clearance(z_homing_height);
+    }
+
+    // Init BLTouch ahead of any lateral motion, even if not homing with the probe
+    TERN_(BLTOUCH, if (may_skate) bltouch.init());
 
     // Diagonal move first if both are homing
     TERN_(QUICK_HOME, if (doX && doY) quick_home_xy());
@@ -455,7 +468,7 @@ void GcodeSuite::G28() {
       #endif
     }
 
-    #if BOTH(FOAMCUTTER_XYUV, HAS_I_AXIS)
+    #if ALL(FOAMCUTTER_XYUV, HAS_I_AXIS)
       // Home I (after X)
       if (doI) homeaxis(I_AXIS);
     #endif
@@ -466,7 +479,7 @@ void GcodeSuite::G28() {
         homeaxis(Y_AXIS);
     #endif
 
-    #if BOTH(FOAMCUTTER_XYUV, HAS_J_AXIS)
+    #if ALL(FOAMCUTTER_XYUV, HAS_J_AXIS)
       // Home J (after Y)
       if (doJ) homeaxis(J_AXIS);
     #endif
@@ -480,7 +493,7 @@ void GcodeSuite::G28() {
       // Home Z last if homing towards the bed
       #if HAS_Z_AXIS && DISABLED(HOME_Z_FIRST)
         if (doZ) {
-          #if EITHER(Z_MULTI_ENDSTOPS, Z_STEPPER_AUTO_ALIGN)
+          #if ANY(Z_MULTI_ENDSTOPS, Z_STEPPER_AUTO_ALIGN)
             stepper.set_all_z_lock(false);
             stepper.set_separate_multi_axis(false);
           #endif
